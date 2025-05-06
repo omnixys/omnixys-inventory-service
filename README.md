@@ -150,3 +150,140 @@ For questions or support:
 - 💼 [https://gentlecorp.com](https://gentlecorp.com)
 - 📧 hello@gentlecorp.com
 
+
+
+# 📦 Omnixys Inventory Service
+
+Der **Omnixys Inventory Service** ist ein modularer Microservice zur Verwaltung von Lagerbeständen innerhalb der **OmnixysSphere**. Er stellt sicher, dass Produktverfügbarkeiten stets aktuell sind, Bestandsänderungen nachverfolgbar bleiben und andere Dienste (wie der Order- oder Product-Service) über GraphQL sowie Kafka Events integriert sind.
+
+> Powered by **OmnixysOS** – The Fabric of Modular Innovation
+
+---
+
+## 🚀 Features
+
+* 📦 Verwaltung von Beständen pro Produkt und Variante
+* 📉 Echtzeitverfügbarkeiten durch GraphQL-Abfragen
+* 🔄 Events bei Bestandserhöhungen/-verringerungen via Kafka
+* 🧾 Tracing via OpenTelemetry (Tempo)
+* 📊 Monitoring via Prometheus (/metrics)
+* 🧠 Zugriffsschutz über Keycloak mit Rollenprüfung (`Admin`, `helper`)
+* �� Zentrales Logging via LoggerPlus + Kafka (`logs.inventory`)
+
+---
+
+## 💠 Tech Stack
+
+| Komponente | Technologie                  |
+| ---------- | ---------------------------- |
+| API        | FastAPI + Strawberry GraphQL |
+| DB         | MongoDB + Beanie ODM         |
+| Auth       | Keycloak                     |
+| Messaging  | Kafka (aiokafka)             |
+| Monitoring | Prometheus, Grafana          |
+| Tracing    | OpenTelemetry + Tempo        |
+| Logging    | LoggerPlus + Kafka           |
+| Port       | `7302`                       |
+
+---
+
+## 🥪 Getting Started
+
+```bash
+# Klone das Repository
+git clone https://github.com/omnixys/omnixys-inventory-service.git
+cd omnixys-inventory-service
+
+# Abhängigkeiten installieren
+pip install -r requirements.txt
+
+# Anwendung starten (lokal)
+uvicorn src.fastapi_app:app --reload
+```
+
+Oder via Docker:
+
+```bash
+docker-compose up
+```
+
+---
+
+## 🔐 Authentifizierung
+
+Alle geschützten Routen erfordern ein gültiges Bearer-Token von Keycloak. Rollenbasierte Zugriffe prüfen z. B.:
+
+```python
+if not user.has_realm_role("Admin"):
+    raise NotAllowedError("Only admins can perform this operation.")
+```
+
+---
+
+## 📡 GraphQL-Schnittstelle
+
+Erreichbar unter:
+`http://localhost:7302/graphql`
+
+Beispiel-Query:
+
+```graphql
+query {
+  getInventoryByProductId(productId: "123") {
+    quantity
+    updatedAt
+  }
+}
+```
+
+---
+
+## �� Logging & Monitoring
+
+* Strukturierte Logs im JSON-Format (`LoggerPlus`)
+* Kafka-Integration via `LogEventDTO`
+* Tracing automatisch via Middleware (`TraceContext`)
+* Prometheus-Metrics unter `/metrics`
+
+---
+
+## 📤 Kafka Topics (Events)
+
+| Event               | Beschreibung                             |
+| ------------------- | ---------------------------------------- |
+| `inventory.updated` | Bestandsänderung für ein Produkt         |
+| `logs.inventory`    | Strukturierte Logs für zentrales Logging |
+
+---
+
+## 📂 Projektstruktur
+
+```
+src/
+├── api/                  # REST / GraphQL Endpunkte
+├── services/             # Businesslogik
+├── kafka/                # Producer & Consumer
+├── graphql/              # Schema & Resolver
+├── models/               # Beanie-Dokumente
+├── config/               # Mongo, Kafka, Keycloak
+├── logger_plus.py        # Logging-Utility
+├── fastapi_app.py        # FastAPI Setup
+└── __main__.py           # Entry Point
+```
+
+---
+
+## 🤝 Beitrag leisten
+
+Siehe [CONTRIBUTING.md](./CONTRIBUTING.md) für Guidelines, Branching und PR-Regeln.
+
+---
+
+## 📜 Lizenz
+
+Veröffentlicht unter der [GNU General Public License v3.0](./LICENSE)
+© 2025 [Omnixys](https://omnixys.com)
+
+---
+
+> *Connect Everything. Empower Everyone.*

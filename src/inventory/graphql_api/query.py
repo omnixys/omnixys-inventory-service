@@ -27,7 +27,7 @@ class Query:
         keycloak.assert_roles(["Admin", "User"])
 
         resolver = await provide_inventory_query_resolver()
-        return await resolver.resolve_inventory(info, inventory_id=str(inventory_id))
+        return await resolver.resolve_inventory(inventory_id=str(inventory_id), token=keycloak.token)
 
     @strawberry.field
     async def inventorys(

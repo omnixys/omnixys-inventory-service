@@ -2,7 +2,7 @@ import httpx
 from typing import Any, Dict
 from loguru import logger
 
-PRODUCT_GRAPHQL_URL = "https://localhost:3000/graphql"
+PRODUCT_GRAPHQL_URL = "http://localhost:7301/graphql"
 class ProductGraphQLClient:
     """Client zur Kommunikation mit dem Product-Service via GraphQL."""
 

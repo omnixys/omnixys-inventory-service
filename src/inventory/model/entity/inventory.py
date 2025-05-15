@@ -26,7 +26,7 @@ class InventoryType:
     unit_price: float
     status: InventoryStatusType
     product_id: str | None
-    # product_name: str | None
+    product_name: str | None
     created: datetime
     updated: datetime
 
@@ -186,7 +186,7 @@ class Inventory(Base):
 
 def map_inventory_to_inventory_type(
     inventory: Inventory,
-    # product_name: Optional[str]
+    product_name: Optional[str]
     ) -> InventoryType:
     """
     Wandelt ein MongoDB-Produktdokument in einen GraphQL-Produkttyp (`InventoryType`) um.
@@ -202,7 +202,7 @@ def map_inventory_to_inventory_type(
         unit_price=float(inventory.unit_price),
         status=InventoryStatusType(inventory.status),
         product_id=inventory.product_id,
-        # product_name=product_name,
+        product_name=product_name,
         created=inventory.created,
         updated=inventory.updated,
     )

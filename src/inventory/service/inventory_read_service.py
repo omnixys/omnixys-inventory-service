@@ -25,6 +25,8 @@ from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.drawing.image import Image as ExcelImage
 from openpyxl.styles import Border, Font, PatternFill, Side
 
+from inventory.client.product.product_service import get_product_by_id
+
 
 class InventoryReadService:
 
@@ -36,15 +38,13 @@ class InventoryReadService:
         self._repository = repository
         self._session = session
 
-    async def find_by_id(self, inventory_id: str) -> InventoryType:
+    async def find_by_id(self, inventory_id: str) -> Inventory:
         logger.debug("inventory_id={}", inventory_id)
 
         inventory = await self._repository.find_by_id(inventory_id)
         if not inventory:
             raise NotFoundError(inventory_id)
-
-        dto = map_inventory_to_inventory_type(inventory)
-        return dto
+        return inventory
 
     async def find(
         self,

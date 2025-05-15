@@ -13,7 +13,7 @@ from inventory.service.inventory_read_service import InventoryReadService
 from inventory.repository.pageable import Pageable
 from inventory.service.reserved_item_read_service import ReservedItemReadService
 from inventory.tracing.decorators import traced
-from inventory.service.product_service import get_product_by_id
+from inventory.client.product.product_service import get_product_by_id
 
 
 @strawberry.type

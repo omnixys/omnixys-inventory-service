@@ -1,7 +1,6 @@
-from inventory.client.product_client import ProductGraphQLClient
+from inventory.client.product.product_client import ProductGraphQLClient
 from typing import Any, Dict
 
-PRODUCT_GRAPHQL_URL = "https://localhost:3000/graphql"  # z. B. via ngrok exposed
 REQUIRED_FIELDS = "name"
 
 

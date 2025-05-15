@@ -1,70 +1,70 @@
-from typing import Final, Sequence
-
-from fastapi import Request
+from fastapi import Depends, HTTPException
+from graphql import GraphQLError
 from loguru import logger
+import strawberry
 from strawberry.types import Info
-
+from typing import Final, Optional
 from inventory.error.exceptions import NotFoundError
-from inventory.graphql_api.graphql_types import InventorySearchCriteria
 from inventory.model.entity.inventory import InventoryType
-from inventory.repository.pageable import Pageable
+from inventory.model.entity.reserved_item import ReserveInventoryItemType
+from inventory.model.input.search_criteria_input import InventorySearchCriteriaInput
 from inventory.security.keycloak_service import KeycloakService
-from inventory.service.inventory_read_service import find, find_by_id
+from inventory.service.inventory_read_service import InventoryReadService
+from inventory.repository.pageable import Pageable
+from inventory.tracing.decorators import traced
 from inventory.service.product_service import get_product_by_id
 
 
-async def resolve_product(info: Info, product_id: str):
-    token = (
-        info.context["request"]
-        .headers.get("Authorization", "")
-        .removeprefix("Bearer ")
-        .strip()
-    )
-    return await get_product_by_id(product_id, token)
+@strawberry.type
+class InventoryQueryResolver:
+    """Resolver für GraphQL-Queries zum Abrufen von Inventaren."""
 
+    def __init__(self, read_service: InventoryReadService):
+        self.read_service = read_service
 
-# Einzelnes Inventory per ID abfragen
-async def resolve_inventory(info: Info, inventory_id: str) -> InventoryType | None:
-    logger.debug("inventory_id={}", inventory_id)
+    @traced("resolve_inventory")
+    async def resolve_inventory(
+        self,
+        info: Info,
+        inventory_id: str,
+    ) -> InventoryType | None:
+        logger.debug("resolve_inventory: inventory_id={}", inventory_id)
 
-    # KeycloakService aus dem Strawberry-Kontext
-    keycloak: KeycloakService = info.context["keycloak"]
-    keycloak.assert_roles(["Admin", "helper"])
+        try:
+            inventory = await self.read_service.find_by_id(inventory_id)
+            # try:
+            #     product = await get_product_by_id(inventory.product_id, keycloak.token)
+            #     inventory.product_name = product.get("name", "Unbekannt")
+            # except Exception as e:
+            #     logger.warning("Produktservice nicht erreichbar: {}", e)
+            #     inventory.product_name = "Unbekannt"
 
-    try:
-        inventory: Final = await find_by_id(
-            inventory_id=inventory_id, token=keycloak.token
-        )
-    except NotFoundError:
-        return None
+            return inventory
+        except NotFoundError:
+            logger.warning("Kein Produkt gefunden für ID: {}", inventory_id)
+            return None
 
-    logger.debug("{}", inventory)
-    return inventory
+    @traced("resolve_inventory")
+    async def resolve_inventorys(
+        self,
+        info: Info,
+        pageable: Pageable,
+        search_criteria: InventorySearchCriteriaInput | None = None,
+    ) -> list[InventoryType]:
+        logger.debug("resolve_inventorys: search_criteria={}", search_criteria)
 
+        # Filter leere Felder heraus
+        criteria_dict: Final = dict(vars(search_criteria)) if search_criteria else {}
+        filtered: Final = {key: val for key, val in criteria_dict.items() if val}
 
-# Alle Inventories mit optionalen Filterkriterien abfragen
-async def resolve_inventories(
-    info: Info,
-    suchkriterien: InventorySearchCriteria | None = None,
-) -> Sequence[InventoryType]:
-    logger.debug("suchkriterien={}", suchkriterien)
+        try:
+            result_slice = await self.read_service.find(
+                filter=filtered,
+                pageable=pageable
+                )
+        except NotFoundError:
+            logger.info("Keine Produkte gefunden mit Kriterien: {}", filtered)
+            return []
 
-    # Rollenprüfung via Keycloak
-    keycloak: KeycloakService = info.context["keycloak"]
-    keycloak.assert_roles(["Admin", "helper"])
-
-    # in ein dict umwandeln, leere Felder filtern
-    suchkriterien_dict: Final[dict[str, str]] = (
-        dict(vars(suchkriterien)) if suchkriterien else {}
-    )
-    filtered = {key: val for key, val in suchkriterien_dict.items() if val}
-    logger.debug("suchkriterien_filtered={}", filtered)
-
-    pageable: Final = Pageable.create(size="0")
-    try:
-        inventory_dto: Final = find(searchCriteria=filtered, pageable=pageable)
-    except NotFoundError:
-        return []
-
-    logger.debug("{}", inventory_dto)
-    return inventory_dto.content
+        logger.debug("resolve_inventorys: found=%{}", len(result_slice.content))
+        return result_slice

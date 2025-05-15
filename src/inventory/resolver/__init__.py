@@ -1,1 +1,1 @@
-from .inventory_query_resolver import resolve_inventories, resolve_inventory
+

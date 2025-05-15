@@ -7,8 +7,27 @@ import uuid
 from sqlalchemy import ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+import strawberry
 
 from inventory.model.entity.base import Base
+
+
+@strawberry.input
+class ReserveInventoryItemInput:
+    sku_code: str
+    quantity: int
+    customer_id: str
+
+
+@strawberry.type
+class ReserveInventoryItemType:
+    id: str | None
+    version: int
+    quantity: int
+    customer_id: str
+    inventory_id: str
+    created: datetime
+    updated: datetime
 
 
 class Reserved_item(Base):
@@ -18,9 +37,6 @@ class Reserved_item(Base):
 
     quantity: Mapped[int]
     """Anzahl reservierter Artikel."""
-
-    username: Mapped[str | None]
-    """Benutzername, der den Artikel reserviert hat."""
 
     customer_id: Mapped[str | None]
     """ID des Kunden, der mit der Reservierung verknüpft ist."""
@@ -34,7 +50,9 @@ class Reserved_item(Base):
     """Beziehung zum zugehörigen `Inventory`-Objekt (N:1)."""
 
     id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+        String(36),
+        primary_key=True,
+        default_factory=lambda: str(uuid.uuid4()),
     )
 
     """Eindeutige ID des reservierten Artikels (UUID, automatisch generiert)."""
@@ -58,17 +76,16 @@ class Reserved_item(Base):
     @classmethod
     def from_dict(
         cls,
-        reserved_item_dict: dict[Literal["quantity", "username", "customer_id"], Any],
+        reserved_item_dict: dict[Literal["quantity", "customer_id"], Any],
     ) -> Self:
         """Erstelle ein `Reserved_item`-Objekt aus einem Dictionary.
 
-        :param reserved_item_dict: Dictionary mit Werten für `quantity`, `username`, `customer_id`
+        :param reserved_item_dict: Dictionary mit Werten für `quantity`,  `customer_id`
         :return: Neues `Reserved_item`-Objekt
         """
         return cls(
             id=None,
             quantity=reserved_item_dict["quantity"],
-            username=reserved_item_dict["username"],
             customer_id=reserved_item_dict["customer_id"],
             inventory_id=None,
             inventory=None,
@@ -80,6 +97,6 @@ class Reserved_item(Base):
         """Gibt eine technische String-Repräsentation des Objekts zurück (nur für Entwickler:innen)."""
         return (
             f"Reserved_item(id={self.id}, version={self.version}, "
-            f"quantity={self.quantity}, username={self.username}, "
-            f"customer_id={self.customer_id}, created={self.created}, updated={self.updated})"
+            f"quantity={self.quantity}, customer_id={self.customer_id},"
+            f"created={self.created}, updated={self.updated})"
         )

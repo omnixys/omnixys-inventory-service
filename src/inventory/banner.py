@@ -52,8 +52,6 @@ def banner(routes: list[BaseRoute]) -> None:
 
     rechnername: Final = gethostname()
     # Default Isolation Level "read committed": Schreibsperren und keine Lesesperren
-    # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#transaction-isolation-level
-    # https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-DEFAULT-TRANSACTION-ISOLATION
 
     db_dialect: Final = engine.dialect
     logger.info("Python           {}", sys.version_info)
@@ -66,7 +64,7 @@ def banner(routes: list[BaseRoute]) -> None:
     logger.info("Strawberry       {}", version("strawberry-graphql"))
     logger.info("SQLAlchemy       {}", version("sqlalchemy"))
     # logger.info("psycopg          {}", version("psycopg"))
-    logger.info("PyMySQL          {}", version("pymysql"))
+    logger.info("AIOMYSQL         {}", version("aiomysql"))
     logger.info("DB URL           {}", db_url)
     logger.info("Identity Columns {}", db_dialect.supports_identity_columns)
     logger.info("Sequence         {}", db_dialect.supports_sequences)

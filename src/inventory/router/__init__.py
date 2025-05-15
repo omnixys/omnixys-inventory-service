@@ -3,8 +3,6 @@
 
 from collections.abc import Sequence
 
-from inventory.router.health_router import liveness, readiness
-from inventory.router.health_router import router as health_router
 from inventory.router.shutdown_router import router as shutdown_router
 from inventory.router.shutdown_router import shutdown
 

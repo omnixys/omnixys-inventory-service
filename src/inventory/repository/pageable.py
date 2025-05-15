@@ -3,44 +3,35 @@
 from dataclasses import dataclass
 from typing import Final
 
-__all__ = ["MAX_PAGE_SIZE", "Pageable"]
+__all__ = ["MAX_PAGE_LIMIT", "Pageable"]
 
-
-DEFAULT_PAGE_SIZE = 5
-MAX_PAGE_SIZE = 100
-DEFAULT_PAGE_NUMBER = 0
+DEFAULT_LIMIT = 10
+MAX_PAGE_LIMIT = 100
+DEFAULT_SKIP = 0
 
 
 @dataclass(eq=False, slots=True, kw_only=True)
 class Pageable:
-    """Data class für die Parameter für Pagination."""
+    """Datenklasse für Offset-basierte Paginierung mit skip + limit."""
 
-    size: int
-    """Anzahl Datensätze pro Seite."""
+    skip: int
+    """Anzahl zu überspringender Datensätze (offset)."""
 
-    number: int
-    """Seitennummer."""
+    limit: int
+    """Maximale Anzahl von Datensätzen pro Seite."""
 
     @staticmethod
-    def create(number: str | None = None, size: str | None = None) -> "Pageable":
-        """Pageable-Objekt aus Eingabedaten erstellen.
+    def create(skip: int | None = None, limit: int | None = None) -> "Pageable":
+        """Erzeugt ein `Pageable`-Objekt aus skip/limit-Werten.
 
-        :param number: Seitennummer als String.
-        :param size: Anzahl pro Seite als String.
-        :return: Pageable-Objekt mit Anzahl pro Seite und Seitennummer.
-        :rtype: Pageable
+        :param skip: Offset (wie viele Elemente sollen übersprungen werden)
+        :param limit: Anzahl der Elemente, die zurückgegeben werden sollen
+        :return: `Pageable`-Objekt
         """
-        number_int: Final = (
-            DEFAULT_PAGE_NUMBER
-            if number is None or not number.isdigit()
-            else int(number)
+        final_skip: Final = skip if skip is not None and skip >= 0 else DEFAULT_SKIP
+        final_limit: Final = (
+            DEFAULT_LIMIT
+            if limit is None or limit > MAX_PAGE_LIMIT or limit < 1
+            else limit
         )
-        size_int: Final = (
-            DEFAULT_PAGE_SIZE
-            if size is None
-            or not size.isdigit()
-            or int(size) > MAX_PAGE_SIZE
-            or int(size) < 0
-            else int(size)
-        )
-        return Pageable(size=size_int, number=number_int)
+        return Pageable(skip=final_skip, limit=final_limit)

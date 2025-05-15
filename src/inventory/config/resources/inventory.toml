@@ -12,9 +12,9 @@ port = 7302
 # dialect = "postgresql"
 dialect = "mysql"
 # dialect = "sqlite"
-username = "inventory"
-name = "inventory"
-password = "GentleCorp27.03.2025"
+username = "inventory-db-user"
+name = "inventory-db"
+password = "Omnixys14.05.2025"
 password-admin = "p"
 host = "localhost"
 # locust: auskommentieren

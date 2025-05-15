@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS reserved_item (
     id CHAR(36) PRIMARY KEY,
     version int NOT NULL,
     quantity INT NOT NULL,
-    username VARCHAR(255) NOT NULL,
+    customer_id CHAR(36) NOT NULL,
     inventory_id CHAR(36),
     created    DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     updated    DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),

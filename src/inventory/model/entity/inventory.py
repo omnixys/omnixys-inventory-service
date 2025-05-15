@@ -3,7 +3,7 @@
 from dataclasses import InitVar
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Final, Self
+from typing import Any, Final, Optional, Self
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -17,7 +17,6 @@ from inventory.model.entity.base import Base
 from inventory.model.entity.reserved_item import Reserved_item
 from inventory.model.enum.inventory_status_type import InventoryStatusType
 
-
 @strawberry.type
 class InventoryType:
     id: str | None
@@ -27,9 +26,18 @@ class InventoryType:
     unit_price: float
     status: InventoryStatusType
     product_id: str | None
-    product_name: str | None
+    # product_name: str | None
     created: datetime
     updated: datetime
+
+
+@strawberry.input
+class InventoryInput:
+    sku_code: str
+    quantity: int
+    unit_price: float
+    status: InventoryStatusType
+    product_id: str
 
     def __init__(self, inventory: "Inventory"):
         """Initialisierung von InventoryType durch ein Entity-Objekt von Inventory.
@@ -44,9 +52,10 @@ class InventoryType:
         self.unit_price = float(inventory.unit_price)
         self.status = inventory.status
         self.product_id = inventory.product_id
-        self.product_name = None  # ggf. aus Produktservice beziehbar
+        # self.product_name = None  # ggf. aus Produktservice beziehbar
         self.created = inventory.created
         self.updated = inventory.updated
+
 
 class Inventory(Base):
     """Entity-Klasse für Inventory data."""
@@ -173,3 +182,27 @@ class Inventory(Base):
             + f"product_id={self.product_id},"
             + f" created={self. created},  updated={self. updated})"
         )
+
+
+def map_inventory_to_inventory_type(
+    inventory: Inventory,
+    # product_name: Optional[str]
+    ) -> InventoryType:
+    """
+    Wandelt ein MongoDB-Produktdokument in einen GraphQL-Produkttyp (`InventoryType`) um.
+
+    :param inventory: Produktdokument aus der Datenbank
+    :return: GraphQL-kompatibler Produktdatentyp (`InventoryType`)
+    """
+    return InventoryType(
+        id=str(inventory.id),
+        version=inventory.version,
+        sku_code=inventory.sku_code,
+        quantity=inventory.quantity,
+        unit_price=float(inventory.unit_price),
+        status=InventoryStatusType(inventory.status),
+        product_id=inventory.product_id,
+        # product_name=product_name,
+        created=inventory.created,
+        updated=inventory.updated,
+    )

@@ -1,62 +1,60 @@
+# inventory/repository/session.py
 
-"""Asynchrone Engine und die Factory für asynchrone Sessions konfigurieren."""
+import asyncio
+from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from inventory.config.db import db_url, db_connect_args
 
-import logging
-from typing import Final
-
-from loguru import logger
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from inventory.config.db import (
-    db_connect_args,
-    db_dialect,
-    db_log_statements,
+# Engine & SessionFactory (einmalig)
+engine = create_async_engine(
     db_url,
-    db_url_admin,
+    connect_args=db_connect_args or {},  # ← verhindert NoneType Error
+    echo=False,
 )
-
-__all__ = ["Session", "dispose_connection_pool", "engine"]
-
-engine: Final = (
-    create_engine(
-        db_url,
-        connect_args=db_connect_args,
-        echo=db_log_statements,
-    )
-    if db_dialect in {"postgresql", "mysql"}
-    else create_engine(db_url, echo=db_log_statements)
-)
-"""
-"Engine" für SQLAlchemy, um DB-Verbindungen und Sessions zu erstellen.
-"""
+AsyncSessionFactory = async_sessionmaker(engine, expire_on_commit=False)
 
 
-def dispose_connection_pool() -> None:
-    """SQLAlchemy-Engine vom Connection-Pool trennen."""
-    logger.info("Connection-Pool fuer die DB wird getrennt.")
-    engine.dispose()
+@asynccontextmanager
+async def get_session() -> AsyncSession:
+    from loguru import logger
+
+    async with AsyncSessionFactory() as session:
+        logger.debug("🔑 Session opened: {}", session)
+        try:
+            yield session
+        finally:
+            logger.debug("🔒 Session closed: {}", session)
 
 
-engine_admin: Final = (
-    create_engine(
-        db_url_admin,
-        connect_args=db_connect_args,
-        echo=db_log_statements,
-    )
-    if db_dialect in {"postgresql", "mysql"}
-    else create_engine(db_url_admin, echo=db_log_statements)
-)
-"""
-"Engine" für SQLAlchemy mit Admin-Rechten zum Laden von CSV-Dateien.
-"""
+from sqlalchemy import inspect
+import gc
 
-Session = sessionmaker(engine, autoflush=False)
-"""
-Factory für Sessions, um durch SQLAlchemy generierte SQL-Anweisungen in Transaktionen
-abzusetzen.
-"""
 
-if db_dialect == "sqlite":
-    # Default-Loglevel ist DEBUG
-    logging.getLogger("aiosqlite").setLevel(level=logging.INFO)
+async def dispose_connection_pool():
+    from inventory.repository.session import engine
+    from loguru import logger
+
+    logger.info("🔻 Disposing DB Engine...")
+
+    # 1. Versuche alle offenen Verbindungen zu schließen (nur aktiv beim dev-pool)
+    try:
+        pool = engine.pool
+        if hasattr(pool, "_connections"):
+            while pool._connections:
+                conn = pool._connections.pop()
+                if conn:
+                    try:
+                        raw = await conn.get()
+                        raw.close()
+                    except Exception:
+                        pass
+    except Exception:
+        pass  # optional: logge Warnung hier
+
+    # 2. Dispose Engine
+    await engine.dispose()
+    logger.info("✅ DB Engine disposed.")
+
+    await asyncio.sleep(0.1)  # ⏱️ Wait to flush all pending destruction
+    # 3. Erzwinge Garbage Collection, damit keine aiomysql-Leichen mehr rumliegen
+    gc.collect()

@@ -14,12 +14,13 @@ class Env(BaseSettings):
     KC_SERVICE_CLIENT_ID: str
     KC_SERVICE_SECRET: str
     CLIENT_SECRET: str
-    APP_ENV: str = "development"
+    APP_ENV: str
+    EXCEL_EXPORT_ENABLED: str
+    EXPORT_FORMAT: str
 
     class Config:
         env_file = ".env"  # Stellen Sie sicher, dass dies auf Ihre .env-Datei verweist
         env_file_encoding = "utf-8"
         case_sensitive = True
-
 
 env = Env()

@@ -7,7 +7,6 @@ from inventory.error.exceptions import (
     UsernameExistsError,
     VersionOutdatedError,
 )
-from inventory.service.inventory_read_service import find, find_by_id
 
 __all__ = [
     "AdresseDTO",
@@ -19,7 +18,6 @@ __all__ = [
     "VersionOutdatedError",
     "create",
     "delete_by_id",
-    "find",
     "find_by_id",
     "find_nachnamen",
     "send_mail",

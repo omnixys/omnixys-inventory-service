@@ -17,6 +17,8 @@
 
 from collections.abc import Mapping
 
+from graphql import GraphQLError
+
 __all__ = [
     "EmailExistsError",
     "NotAllowedError",
@@ -24,6 +26,11 @@ __all__ = [
     "UsernameExistsError",
     "VersionOutdatedError",
 ]
+
+
+class AuthenticationError(GraphQLError):
+    def __init__(self, message="Authentication required!"):
+        super().__init__(message)
 
 
 class EmailExistsError(Exception):

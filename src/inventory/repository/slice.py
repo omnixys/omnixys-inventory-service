@@ -1,22 +1,26 @@
-
-"""Ausschnitt an gefundenen Daten."""
+"""Ausschnitt an gefundenen Daten mit Paginierungsinformationen."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import TypeVar, Generic
 
 __all__ = ["Slice"]
-
 
 T = TypeVar("T")
 
 
 @dataclass(eq=False, slots=True, kw_only=True)
-class Slice[T]:
-    """Data class für den Ausschnitt an gefundenen Daten."""
+class Slice(Generic[T]):
+    """Generische Datenklasse für Paginierungsergebnisse."""
 
     content: Sequence[T]
-    """Ausschnitt der gefundenen Datensätze."""
+    """Teilausschnitt der gefundenen Datensätze."""
 
-    total_elements: int
-    """Gesamte Anzahl an Datensätzen."""
+    total: int
+    """Gesamtanzahl der gefundenen Datensätze (für Paging-Anzeige)."""
+
+    page: int
+    """Aktuelle Seite (beginnend bei 0)."""
+
+    size: int
+    """Anzahl von Elementen pro Seite."""

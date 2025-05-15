@@ -14,7 +14,7 @@ from inventory.model.entity.base import Base
 
 @strawberry.input
 class ReserveInventoryItemInput:
-    sku_code: str
+    inventory_id: str
     quantity: int
     customer_id: str
 

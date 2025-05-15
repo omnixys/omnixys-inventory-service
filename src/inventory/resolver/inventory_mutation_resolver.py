@@ -34,8 +34,8 @@ class InventoryMutationResolver:
 
     @traced("reserve_inventory")
     async def reserve_inventory(
-        self, info: Info, input: ReserveInventoryItemInput
-    ) -> InventoryType:
+        self, input: ReserveInventoryItemInput
+    ) -> str:
         logger.debug("reserve_inventory: input={}", input)
         return await self.write_service.reserve(input)
 

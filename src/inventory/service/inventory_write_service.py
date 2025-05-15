@@ -61,13 +61,13 @@ class InventoryWriteService:
         return True
 
     @traced("reserve_inventory")
-    async def reserve(self, input: ReserveInventoryItemInput) -> InventoryType:
+    async def reserve(self, input: ReserveInventoryItemInput) -> str:
         logger.debug("InventoryWriteService#reserve: input={}", input)
 
-        inventory = await self._inventory_repo.find_by_sku_or_throw(input.sku_code)
+        inventory = await self._inventory_repo.find_by_id(input.inventory_id)
 
         if inventory.quantity < input.quantity:
-            raise ValueError(f"Nicht genügend Bestand für SKU={input.sku_code}")
+            raise ValueError(f"Nicht genügend Bestand für ID={input.inventory_id}")
 
         inventory.quantity -= input.quantity
 
@@ -83,16 +83,15 @@ class InventoryWriteService:
         await self._inventory_repo.update(inventory)
         await self._session.commit()
 
-        return map_inventory_to_inventory_type(inventory)
+        return reserved_item.id
 
     @traced("release_inventory")
-    async def release(self, input: ReserveInventoryItemInput) -> InventoryType:
+    async def release(self, input: ReserveInventoryItemInput) -> None:
         logger.debug("InventoryWriteService#release: input={}", input)
 
-        inventory = await self._inventory_repo.find_by_sku_or_throw(input.sku_code)
+        inventory = await self._inventory_repo.find_by_id(input.inventory_id)
 
         reserved_item = await self._reserved_item_repo.find_by_composite_key_or_throw(
-            sku_code=input.sku_code,
             customer_id=input.customer_id,
         )
 
@@ -101,5 +100,3 @@ class InventoryWriteService:
         await self._reserved_item_repo.delete(reserved_item)
         await self._inventory_repo.update(inventory)
         await self._session.commit()
-
-        return map_inventory_to_inventory_type(inventory)

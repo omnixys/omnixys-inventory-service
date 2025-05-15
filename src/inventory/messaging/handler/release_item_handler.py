@@ -4,7 +4,7 @@ from inventory.repository.session import get_session
 from inventory.tracing.trace_context_util import TraceContextUtil
 
 # TODO preis auch reservieren
-class ReserveItemHandler:
+class ReleaseItemHandler:
     async def __call__(self, payload: dict, headers: dict):
         # ⛔ Zirkularimport vermeiden durch Lazy Import:
         from inventory.dependency_provider import provide_inventory_write_service
@@ -16,12 +16,12 @@ class ReserveItemHandler:
                 try:
                     item = payload["item"]
                     input = ReserveInventoryItemInput(
-                        inventory_id=item["inventoryId"],
+                        inventory_id=item["inventoryId"],  # ← falls inventoryId als skuCode gilt
                         quantity=item["quantity"],
                         customer_id=payload["customerId"],
                     )
 
-                    await write_service.reserve(input)
+                    await write_service.release(input)
                 except KeyError as e:
                     logger.error(f"⚠️ Fehlendes Feld im Payload: {e}")
                     return

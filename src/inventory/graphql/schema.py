@@ -6,8 +6,8 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.federation import Schema
 
 from inventory.config.graphql import graphql_ide
-from inventory.graphql_api.mutation import Mutation
-from inventory.graphql_api.query import Query
+from inventory.graphql.mutation import Mutation
+from inventory.graphql.query import Query
 from inventory.repository.inventory_repository import InventoryRepository
 from inventory.repository.session import AsyncSessionFactory
 from inventory.resolver.inventory_query_resolver import InventoryQueryResolver

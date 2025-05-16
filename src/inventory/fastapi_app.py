@@ -20,7 +20,7 @@ from inventory.config.dev.db_populate import db_populate
 from inventory.config.otel_setup import setup_otel
 from inventory.dependency_provider import provide_inventory_write_service
 from inventory.error.exceptions import EmailExistsError, NotAllowedError, NotFoundError, UsernameExistsError, VersionOutdatedError
-from inventory.graphql_api.schema import graphql_router
+from inventory.graphql.schema import graphql_router
 from inventory.messaging.kafka_singleton import get_kafka_consumer, get_kafka_producer
 from inventory.repository.session import dispose_connection_pool, get_session
 from inventory.router import shutdown_router

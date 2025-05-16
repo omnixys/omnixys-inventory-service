@@ -5,7 +5,7 @@ from inventory.config import env
 
 class KafkaSettings(BaseSettings):
     bootstrap_servers: str = "localhost:9092"
-    topic_log: str = "activity.log.inventory"
+    topic_log: str = "logstream.log.inventory"
     client_id: str = env.PROJECT_NAME
 
     class Config:

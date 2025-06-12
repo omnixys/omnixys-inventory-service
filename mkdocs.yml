@@ -56,7 +56,7 @@ markdown_extensions:
       permalink: true
 
 watch: [docs, mkdocs.yml, src/inventory]
-strict: true
+strict: false
 copyright: Copyright &copy; 2023 - present Jürgen Zimmermann, Hochschule Karlsruhe
 
 plugins:

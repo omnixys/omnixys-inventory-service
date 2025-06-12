@@ -11,8 +11,8 @@ on:
             - "v*" # Nur für Versionstags (z.B. v1.0.0)
 
 permissions:
-  contents: read
-  id-token: write  # ← WICHTIG für Cosign ohne Schlüssel (keyless signing)
+    contents: read
+    id-token: write # ← WICHTIG für Cosign ohne Schlüssel (keyless signing)
 
 env:
     COSIGN_EXPERIMENTAL: "true"
@@ -222,8 +222,8 @@ jobs:
 
             - name: Sign Docker Image with cosign (OIDC/GitHub)
               run: |
-                  cosign sign ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
-                  cosign sign ${{ env.IMAGE_NAME }}:latest
+                  cosign sign --yes ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+                  cosign sign --yes ${{ env.IMAGE_NAME }}:latest
 
             - name: Generate CycloneDX SBOM for Python
               run: |

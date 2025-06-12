@@ -110,8 +110,8 @@ jobs:
 
             - name: Sign Docker Image with cosign (OIDC/GitHub)
               run: |
-                  cosign sign ${{ env.IMAGE_NAME }}:${{ vars.CURRENT_DATE }}
-                  cosign sign ${{ env.IMAGE_NAME }}:latest
+                  cosign sign --yes ${{ env.IMAGE_NAME }}:${{ vars.CURRENT_DATE }}
+                  cosign sign --yes ${{ env.IMAGE_NAME }}:latest
 
             - name: Generate CycloneDX SBOM for Python
               run: |

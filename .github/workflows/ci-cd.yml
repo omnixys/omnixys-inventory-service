@@ -100,6 +100,13 @@ jobs:
               echo "CURRENT_DATE ist bereits aktuell: $CURRENT_DATE"
             fi
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-dist-${{ matrix.python-version }}
+          path: .
+          retention-days: 1
+
   analyze:
     runs-on: ubuntu-latest
     needs: build
@@ -116,7 +123,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: |
+            pip install uv
+            uv sync --all-groups
 
       # - name: Run linter (Ruff)
       #   run: ruff check .

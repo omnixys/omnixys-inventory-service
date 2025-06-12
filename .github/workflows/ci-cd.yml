@@ -10,7 +10,12 @@ on:
         tags:
             - "v*" # Nur für Versionstags (z.B. v1.0.0)
 
+permissions:
+  contents: read
+  id-token: write  # ← WICHTIG für Cosign ohne Schlüssel (keyless signing)
+
 env:
+    COSIGN_EXPERIMENTAL: "true"
     IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
 
     ACTIVE_PROFILE: ${{ secrets.ACTIVE_PROFILE }}

@@ -125,12 +125,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install docs dependencies
+      - name: Download virtual environment
+        uses: actions/download-artifact@v4
+        with:
+          name: inventory-venv-${{ matrix.python-version }}
+          path: .venv
+
+      - name: Activate venv and build docs
         run: |
-            uv venv .venv
-            source .venv/bin/activate
-            uv pip install mkdocs mkdocs-material
-            mkdocs build
+          source .venv/bin/activate
+          uv add mkdocs mkdocs-material
+          mkdocs build
+
 
       # - name: Run linter (Ruff)
       #   run: ruff check .

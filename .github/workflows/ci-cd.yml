@@ -127,8 +127,6 @@ jobs:
 
       - name: Activate venv and build docs
         run: |
-            mkdir docs
-            echo "# Dokumentation" > docs/index.md
             pip install uv
             uv venv .venv
             source .venv/bin/activate

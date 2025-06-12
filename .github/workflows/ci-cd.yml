@@ -58,7 +58,7 @@ jobs:
         run: pip install uv
 
       - name: Install all dependencies via uv
-        run: uv sync --all-groups --system
+        run: uv sync --all-groups
 
     #   - name: Run Tests
     #     run: pytest --disable-warnings
@@ -67,13 +67,13 @@ jobs:
         run: |
           CURRENT_DATE="${{ steps.set_date.outputs.CURRENT_DATE }}"
           ORG_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f1)
-              
+
           EXISTING=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
             | jq -r '.value')
-              
+
           if [ "$EXISTING" != "$CURRENT_DATE" ]; then
             echo "Updating org-level CURRENT_DATE from $EXISTING to $CURRENT_DATE"
             curl -X PATCH \
@@ -84,7 +84,7 @@ jobs:
           else
             echo "CURRENT_DATE in org already up-to-date: $CURRENT_DATE"
           fi
-              
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

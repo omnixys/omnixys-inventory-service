@@ -29,7 +29,7 @@ env:
 
 jobs:
   build:
-    name: 🔨 Build & Test (Maven)
+    name: 🔨 Build & Test
     runs-on: ubuntu-latest
     outputs:
       CURRENT_DATE: ${{ steps.set_date.outputs.CURRENT_DATE }}
@@ -57,8 +57,8 @@ jobs:
       - name: Install uv
         run: pip install uv
 
-      - name: Restore Dependencies (uv)
-        run: uv pip install --system --upgrade
+      - name: Install all dependencies via uv
+        run: uv sync --all-groups --system
 
     #   - name: Run Tests
     #     run: pytest --disable-warnings

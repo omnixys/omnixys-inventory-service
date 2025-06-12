@@ -107,6 +107,9 @@ jobs:
       - name: ls
         run: ls -al
 
+      - name: ls
+        run: ls -al ./.venv
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -118,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: inventory-venv-${{ matrix.python-version }}
-          path: .venv/
+          path: .venv/**/*
           retention-days: 1
 
   analyze:

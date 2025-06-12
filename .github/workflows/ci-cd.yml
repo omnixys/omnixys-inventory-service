@@ -108,7 +108,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv pip install --system
+        run: uv sync --all-groups
 
       # - name: Run linter (Ruff)
       #   run: ruff check .

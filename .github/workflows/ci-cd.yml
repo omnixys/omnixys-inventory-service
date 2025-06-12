@@ -130,7 +130,8 @@ jobs:
             pip install uv
             uv venv .venv
             source .venv/bin/activate
-            mkdocs build
+            uv sync --all-groups
+            uv run doc build
 
 
       # - name: Run linter (Ruff)

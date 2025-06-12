@@ -13,6 +13,39 @@ env:
   IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
 
 jobs:
+  sign-and-attest:
+        name: Sign & Attest Docker Image
+        needs: [docker-scout]
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write  # für GitHub OIDC
+          contents: read
+        steps:
+          - name: Checkout Code
+            uses: actions/checkout@v4
+
+          - name: Download SBOM
+            uses: actions/download-artifact@v4
+            with:
+              name: SBOM
+              path: target/bom.xml
+
+          - name: Install Cosign
+            uses: sigstore/cosign-installer@v3.4.0
+
+          - name: Sign Image with Cosign
+            run: |
+              cosign sign --yes --recursive ${IMAGE_NAME}:${CURRENT_DATE}
+
+          - name: Attach SBOM as Attestation
+            run: |
+              cosign attest \
+                --yes \
+                --recursive \
+                --type cyclonedx \
+                --predicate target/bom.xml \
+                ${IMAGE_NAME}:${CURRENT_DATE}
+
   python-dependency-check:
     name: "Python Dependency Check-${{ vars.CURRENT_DATE }}"
     runs-on: ubuntu-latest

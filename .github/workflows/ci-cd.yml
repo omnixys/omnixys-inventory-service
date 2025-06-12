@@ -225,13 +225,13 @@ jobs:
                   cosign sign --yes ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
                   cosign sign --yes ${{ env.IMAGE_NAME }}:latest
 
-            - name: Generate CycloneDX SBOM for Python
-              run: |
-                  pip install cyclonedx-bom
-                  cyclonedx-py -e -j -o sbom.json
+            # - name: Generate CycloneDX SBOM for Python
+            #   run: |
+            #       pip install cyclonedx-bom
+            #       cyclonedx-py -e -j -o sbom.json
 
-            - name: Upload SBOM (CycloneDX)
-              uses: actions/upload-artifact@v4
-              with:
-                  name: sbom-cyclonedx
-                  path: sbom.json
+            # - name: Upload SBOM (CycloneDX)
+            #   uses: actions/upload-artifact@v4
+            #   with:
+            #       name: sbom-cyclonedx
+            #       path: sbom.json

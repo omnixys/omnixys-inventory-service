@@ -110,13 +110,6 @@ jobs:
           path: .
           retention-days: 1
 
-      - name: Upload .venv
-        uses: actions/upload-artifact@v4
-        with:
-          name: inventory-venv-${{ matrix.python-version }}
-          path: ./.venv
-          retention-days: 1
-
   analyze:
     runs-on: ubuntu-latest
     needs: build
@@ -135,8 +128,8 @@ jobs:
       - name: Download virtual environment
         uses: actions/download-artifact@v4
         with:
-          name: inventory-venv-${{ matrix.python-version }}
-          path: .venv
+          name: inventory-dist-${{ matrix.python-version }}
+          path: .
 
       - name: Activate venv and build docs
         run: |

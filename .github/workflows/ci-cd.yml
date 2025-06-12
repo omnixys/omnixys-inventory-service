@@ -1,236 +1,232 @@
 name: CI/CD Pipeline – Omnixys Inventory Service
 
 on:
-  pull_request:
-    branches:
-      - '**'
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'  # Nur für Versionstags (z.B. v1.0.0)
+    pull_request:
+        branches:
+            - "**"
+    push:
+        branches:
+            - main
+        tags:
+            - "v*" # Nur für Versionstags (z.B. v1.0.0)
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
+    IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
 
-  ACTIVE_PROFILE: ${{ secrets.ACTIVE_PROFILE }}
-  HTTPS: ${{ secrets.HTTPS }}
+    ACTIVE_PROFILE: ${{ secrets.ACTIVE_PROFILE }}
+    HTTPS: ${{ secrets.HTTPS }}
 
-  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  KC_SERVICE_SECRET: ${{ secrets.KC_SERVICE_SECRET }}
+    KC_SERVICE_SECRET: ${{ secrets.KC_SERVICE_SECRET }}
 
-  KAFKA_HOST: ${{ secrets.KAFKA_HOST }}
-  TEMPO_HOST: ${{ secrets.TEMPO_HOST }}
-  KEYS_PATH: ${{ secrets.KEYS_PATH }}
+    KAFKA_HOST: ${{ secrets.KAFKA_HOST }}
+    TEMPO_HOST: ${{ secrets.TEMPO_HOST }}
+    KEYS_PATH: ${{ secrets.KEYS_PATH }}
 
 jobs:
-  build:
-    name: 🔨 Build & Test
-    runs-on: ubuntu-latest
-    outputs:
-      CURRENT_DATE: ${{ steps.set_date.outputs.CURRENT_DATE }}
-    strategy:
-      matrix:
-        python-version: [3.13]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build:
+        name: 🔨 Build & Test
+        runs-on: ubuntu-latest
+        outputs:
+            CURRENT_DATE: ${{ steps.set_date.outputs.CURRENT_DATE }}
+        strategy:
+            matrix:
+                python-version: [3.13]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Print ref name
-        run: echo "This workflow was triggered by ${{ github.ref_name }}"
+            - name: Print ref name
+              run: echo "This workflow was triggered by ${{ github.ref_name }}"
 
-      - name: Print actor
-        run: echo "The actor is ${{ github.actor }}"
+            - name: Print actor
+              run: echo "The actor is ${{ github.actor }}"
 
-      - name: Print tag
-        run: echo "The tag is ${{ github.ref_name }}"
+            - name: Print tag
+              run: echo "The tag is ${{ github.ref_name }}"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
 
-      - name: Install uv
-        run: pip install uv
+            - name: Install uv
+              run: pip install uv
 
-      - name: Install all dependencies via uv
-        run: |
-            uv venv .venv
-            source .venv/bin/activate
-            uv sync --all-groups
+            - name: Install all dependencies via uv
+              run: |
+                  uv venv .venv
+                  source .venv/bin/activate
+                  uv sync --all-groups
 
-    #   - name: Run Tests
-    #     run: pytest --disable-warnings
+            #   - name: Run Tests
+            #     run: pytest --disable-warnings
 
+            - name: Set CURRENT_DATE
+              id: set_date
+              run: |
+                  DATE=$(date +'%Y-%m-%d')
+                  echo "CURRENT_DATE=$DATE" >> $GITHUB_OUTPUT
 
-      - name: Set CURRENT_DATE
-        id: set_date
-        run: |
-          DATE=$(date +'%Y-%m-%d')
-          echo "CURRENT_DATE=$DATE" >> $GITHUB_OUTPUT
+            - name: Aktualisiere CURRENT_DATE in Organisations-Variable (sicher)
+              run: |
+                  CURRENT_DATE="${{ steps.set_date.outputs.CURRENT_DATE }}"
 
+                  if [ -z "$CURRENT_DATE" ]; then
+                    echo "Fehler: CURRENT_DATE ist leer!"
+                    exit 1
+                  fi
 
-      - name: Aktualisiere CURRENT_DATE in Organisations-Variable (sicher)
-        run: |
-            CURRENT_DATE="${{ steps.set_date.outputs.CURRENT_DATE }}"
+                  ORG_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f1)
 
-            if [ -z "$CURRENT_DATE" ]; then
-              echo "Fehler: CURRENT_DATE ist leer!"
-              exit 1
-            fi
+                  EXISTING=$(curl -s \
+                    -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                    -H "Accept: application/vnd.github+json" \
+                    https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
+                    | jq -r '.value')
 
-            ORG_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f1)
+                  echo "Updating org-level CURRENT_DATE from $EXISTING to $CURRENT_DATE"
 
-            EXISTING=$(curl -s \
-              -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
-              | jq -r '.value')
+                  if [ "$EXISTING" != "$CURRENT_DATE" ]; then
+                    curl -X PATCH \
+                      -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                      -H "Accept: application/vnd.github+json" \
+                      https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
+                      -d "{\"value\": \"${CURRENT_DATE}\"}"
+                  else
+                    echo "CURRENT_DATE ist bereits aktuell: $CURRENT_DATE"
+                  fi
 
-            echo "Updating org-level CURRENT_DATE from $EXISTING to $CURRENT_DATE"
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: inventory-dist-${{ matrix.python-version }}
+                  path: .
+                  retention-days: 1
 
-            if [ "$EXISTING" != "$CURRENT_DATE" ]; then
-              curl -X PATCH \
-                -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-                -H "Accept: application/vnd.github+json" \
-                https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
-                -d "{\"value\": \"${CURRENT_DATE}\"}"
-            else
-              echo "CURRENT_DATE ist bereits aktuell: $CURRENT_DATE"
-            fi
+    analyze:
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                python-version: [3.13]
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: inventory-dist-${{ matrix.python-version }}
-          path: .
-          retention-days: 1
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
 
-  analyze:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      matrix:
-        python-version: [3.13]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+            - name: Activate venv and build docs
+              run: |
+                  pip install uv
+                  uv venv .venv
+                  source .venv/bin/activate
+                  uv sync --all-groups
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+            # - name: Run linter (Ruff)
+            #   run: ruff check .
 
-      - name: Activate venv and build docs
-        run: |
-            pip install uv
-            uv venv .venv
-            source .venv/bin/activate
-            uv sync --all-groups
+            # - name: Run safety audit
+            #   run: uv pip install safety && safety check --full-report
 
+            - name: Generate Docs (e.g. MkDocs)
+              run: uv run doc build
 
-      # - name: Run linter (Ruff)
-      #   run: ruff check .
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+                  publish_dir: ./site
 
-      # - name: Run safety audit
-      #   run: uv pip install safety && safety check --full-report
+    package:
+        name: 📦 Package Application
+        runs-on: ubuntu-latest
+        needs: [build]
+        strategy:
+            matrix:
+                python-version: [3.13]
+        if: github.actor == 'caleb-script' && github.event_name == 'push'
+        steps:
+            - name: Download dist folder
+              uses: actions/download-artifact@v4
+              with:
+                  name: inventory-dist-${{ matrix.python-version }}
+                  path: .
 
-      - name: Generate Docs (e.g. MkDocs)
-        run:  uv run doc build
+            - name: Package distribution
+              run: zip -r inventory.zip ./
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          publish_dir: ./site
+            - name: Upload package
+              uses: actions/upload-artifact@v4
+              with:
+                  name: inventory-package-${{ matrix.python-version }}
+                  path: inventory.zip
 
-  package:
-    name: 📦 Package Application
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      matrix:
-        python-version: [3.13]
-    if: github.actor == 'caleb-script' && github.event_name == 'push'
-    steps:
+    docker:
+        name: 🐳 Docker Build & Push
+        runs-on: ubuntu-latest
+        needs: [build, package]
+        env:
+            CURRENT_DATE: ${{ needs.build.outputs.CURRENT_DATE }}
+        if: github.actor == 'caleb-script' && github.event_name == 'push'
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-      - name: Download dist folder
-        uses: actions/download-artifact@v4
-        with:
-          name: inventory-dist-${{ matrix.python-version }}
-          path: .
-
-      - name: Package distribution
-        run: zip -r inventory.zip ./
-
-      - name: Upload package
-        uses: actions/upload-artifact@v4
-        with:
-          name: inventory-package-${{ matrix.python-version }}
-          path: inventory.zip
-
-  docker:
-            name: 🐳 Docker Build & Push
-            runs-on: ubuntu-latest
-            needs: [build, package]
-            env:
-              CURRENT_DATE: ${{ needs.build.outputs.CURRENT_DATE }}
-            if: github.actor == 'caleb-script' && github.event_name == 'push'
-            steps:
-              - name: Checkout Repository
-                uses: actions/checkout@v4
-
-              - name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
-                with:
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+              with:
                   install: true
                   driver-opts: image=moby/buildkit:latest
 
-              - name: Log in to Docker Hub
-                uses: docker/login-action@v3
-                with:
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKER_USER }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
 
-              - name: Set up Docker Cache
-                uses: actions/cache@v4
-                with:
+            - name: Set up Docker Cache
+              uses: actions/cache@v4
+              with:
                   path: /tmp/.buildx-cache
                   key: buildx-${{ github.sha }}
                   restore-keys: |
-                    buildx-
+                      buildx-
 
-              - name: Build and Push Docker Image (Multi-Arch)
-                uses: docker/build-push-action@v5
-                with:
+            - name: Build and Push Docker Image (Multi-Arch)
+              uses: docker/build-push-action@v5
+              with:
                   context: .
                   push: true
                   platforms: linux/amd64,linux/arm64
                   tags: |
-                    ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
-                    ${{ env.IMAGE_NAME }}:latest
+                      ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+                      ${{ env.IMAGE_NAME }}:latest
                   cache-from: type=local,src=/tmp/.buildx-cache
                   cache-to: type=local,dest=/tmp/.buildx-cache
 
-              - name: Install cosign
-                uses: sigstore/cosign-installer@v3
+            - name: Install cosign
+              uses: sigstore/cosign-installer@v3
 
-              - name: Sign Docker Image with cosign (OIDC/GitHub)
-                run: |
-                  cosign sign --key github ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
-                  cosign sign --key github ${{ env.IMAGE_NAME }}:latest
+            - name: Sign Docker Image with cosign (OIDC/GitHub)
+              run: |
+                  cosign sign ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+                  cosign sign ${{ env.IMAGE_NAME }}:latest
 
-              - name: Generate CycloneDX SBOM for Python
-                run: |
+            - name: Generate CycloneDX SBOM for Python
+              run: |
                   pip install cyclonedx-bom
                   cyclonedx-py -e -j -o sbom.json
 
-              - name: Upload SBOM (CycloneDX)
-                uses: actions/upload-artifact@v4
-                with:
+            - name: Upload SBOM (CycloneDX)
+              uses: actions/upload-artifact@v4
+              with:
                   name: sbom-cyclonedx
                   path: sbom.json

@@ -103,6 +103,10 @@ jobs:
               echo "CURRENT_DATE ist bereits aktuell: $CURRENT_DATE"
             fi
 
+
+      - name: ls
+        run: ls -al
+        
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

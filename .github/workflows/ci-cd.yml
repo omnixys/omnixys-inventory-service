@@ -63,34 +63,42 @@ jobs:
     #   - name: Run Tests
     #     run: pytest --disable-warnings
 
+
+      - name: Set CURRENT_DATE
+        id: set_date
+        run: |
+          DATE=$(date +'%Y-%m-%d')
+          echo "CURRENT_DATE=$DATE" >> $GITHUB_OUTPUT
+
+
       - name: Aktualisiere CURRENT_DATE in Organisations-Variable (sicher)
         run: |
-          CURRENT_DATE="${{ steps.set_date.outputs.CURRENT_DATE }}"
-          ORG_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f1)
+            CURRENT_DATE="${{ steps.set_date.outputs.CURRENT_DATE }}"
 
-          EXISTING=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
-            | jq -r '.value')
+            if [ -z "$CURRENT_DATE" ]; then
+              echo "Fehler: CURRENT_DATE ist leer!"
+              exit 1
+            fi
 
-          if [ "$EXISTING" != "$CURRENT_DATE" ]; then
-            echo "Updating org-level CURRENT_DATE from $EXISTING to $CURRENT_DATE"
-            curl -X PATCH \
+            ORG_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f1)
+
+            EXISTING=$(curl -s \
               -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
-              -d "{\"value\": \"${CURRENT_DATE}\"}"
-          else
-            echo "CURRENT_DATE in org already up-to-date: $CURRENT_DATE"
-          fi
+              | jq -r '.value')
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: inventory-${{ matrix.python-version }}
-          path: .
-          retention-days: 1
+            echo "Updating org-level CURRENT_DATE from $EXISTING to $CURRENT_DATE"
+
+            if [ "$EXISTING" != "$CURRENT_DATE" ]; then
+              curl -X PATCH \
+                -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                -H "Accept: application/vnd.github+json" \
+                https://api.github.com/orgs/${ORG_NAME}/actions/variables/CURRENT_DATE \
+                -d "{\"value\": \"${CURRENT_DATE}\"}"
+            else
+              echo "CURRENT_DATE ist bereits aktuell: $CURRENT_DATE"
+            fi
 
   analyze:
     runs-on: ubuntu-latest
@@ -108,7 +116,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: uv pip install --system
 
       # - name: Run linter (Ruff)
       #   run: ruff check .

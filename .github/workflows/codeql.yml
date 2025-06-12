@@ -36,7 +36,7 @@ jobs:
       - name: Install uv & dependencies
         run: |
           pip install uv
-          uv pip install --system
+          uv sync --all-groups --system
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

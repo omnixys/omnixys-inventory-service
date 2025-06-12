@@ -12,7 +12,7 @@ __all__ = ["inventory_config", "resources_path"]
 resources_path: Final[str] = "inventory.config.resources"
 
 _resources_traversable: Final[Traversable] = files(resources_path)
-_config_file: Final[Traversable] = _resources_traversable / "inventory.toml"
+_config_file: Final[Traversable] = _resources_traversable / "app.toml"
 logger.debug("config: _config_file={}", _config_file)
 
 

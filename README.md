@@ -1,6 +1,6 @@
 # 📦 GentleCorp Inventory Service
 
-> DE | [ENGLISH BELOW](#-gentlecorp-inventory-service-en)
+> DE | [ENGLISH BELOW](#-omnixys-inventory-service-en)
 
 Willkommen beim **Inventory Service** des GentleCorp-Ecosystems. Dieser Microservice verwaltet Lagerbestände, Produktverfügbarkeiten und bietet APIs zur Bestandsabfrage und -aktualisierung.
 
@@ -8,30 +8,30 @@ Willkommen beim **Inventory Service** des GentleCorp-Ecosystems. Dieser Microser
 
 ## 📚 Inhaltsverzeichnis
 
-- [🚀 Funktionen](#-funktionen)
-- [🛠️ Technologie-Stack](#️-technologie-stack)
-- [⚙️ Installation & Setup](#️-installation--setup)
-- [🔐 Lizenz](#-lizenz)
-- [📬 Kommerzielle Lizenzierung](#-kommerzielle-lizenzierung)
-- [📞 Kontakt](#-kontakt)
+-   [🚀 Funktionen](#-funktionen)
+-   [🛠️ Technologie-Stack](#️-technologie-stack)
+-   [⚙️ Installation & Setup](#️-installation--setup)
+-   [🔐 Lizenz](#-lizenz)
+-   [📬 Kommerzielle Lizenzierung](#-kommerzielle-lizenzierung)
+-   [📞 Kontakt](#-kontakt)
 
 ---
 
 ## 🚀 Funktionen
 
-- Verwaltung von Lagerbeständen
-- Abfrage von Produktverfügbarkeiten
-- Reservierung und Freigabe von Lagerartikeln
-- REST-API für Anbindung an andere Microservices
+-   Verwaltung von Lagerbeständen
+-   Abfrage von Produktverfügbarkeiten
+-   Reservierung und Freigabe von Lagerartikeln
+-   REST-API für Anbindung an andere Microservices
 
 ---
 
 ## 🛠️ Technologie-Stack
 
-- **Sprache:** TypeScript
-- **Framework:** NestJS
-- **Datenbank:** MySQL
-- **Protokoll:** REST
+-   **Sprache:** TypeScript
+-   **Framework:** NestJS
+-   **Datenbank:** MySQL
+-   **Protokoll:** REST
 
 ---
 
@@ -39,8 +39,8 @@ Willkommen beim **Inventory Service** des GentleCorp-Ecosystems. Dieser Microser
 
 ```bash
 # Repository klonen
-git clone https://github.com/GentleCorp-AG/gentlecorp-inventory-service.git
-cd gentlecorp-inventory-service
+git clone https://github.com/GentleCorp-AG/omnixys-inventory-service.git
+cd omnixys-inventory-service
 
 # Abhängigkeiten installieren
 npm install
@@ -61,9 +61,9 @@ Dieses Projekt steht unter der **GNU Affero General Public License v3.0 (AGPL-3.
 
 Für den Einsatz in kommerziellen oder proprietären Systemen ist eine kommerzielle Lizenz erforderlich. Weitere Informationen findest du unter:
 
-- [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md)
-- [https://gentlecorp.com/lizenz](https://gentlecorp.com/lizenz)
-- 📧 license@gentlecorp.com
+-   [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md)
+-   [https://omnixys.com/lizenz](https://omnixys.com/lizenz)
+-   📧 license@omnixys.com
 
 ---
 
@@ -71,8 +71,8 @@ Für den Einsatz in kommerziellen oder proprietären Systemen ist eine kommerzie
 
 Bei Fragen oder Support:
 
-- 💼 [https://gentlecorp.com](https://gentlecorp.com)
-- 📧 hello@gentlecorp.com
+-   💼 [https://omnixys.com](https://omnixys.com)
+-   📧 hello@omnixys.com
 
 ---
 
@@ -84,30 +84,30 @@ Welcome to the **Inventory Service** of the GentleCorp Ecosystem. This microserv
 
 ## 📚 Table of Contents
 
-- [🚀 Features](#-features)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [⚙️ Installation & Setup](#️-installation--setup)
-- [🔐 License](#-license)
-- [📬 Commercial Licensing](#-commercial-licensing)
-- [📞 Contact](#-contact)
+-   [🚀 Features](#-features)
+-   [🛠️ Tech Stack](#️-tech-stack)
+-   [⚙️ Installation & Setup](#️-installation--setup)
+-   [🔐 License](#-license)
+-   [📬 Commercial Licensing](#-commercial-licensing)
+-   [📞 Contact](#-contact)
 
 ---
 
 ## 🚀 Features
 
-- Manage product inventory
-- Check product availability
-- Reserve and release stock
-- REST API to integrate with other microservices
+-   Manage product inventory
+-   Check product availability
+-   Reserve and release stock
+-   REST API to integrate with other microservices
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Language:** TypeScript
-- **Framework:** NestJS
-- **Database:** MySQL
-- **Protocol:** REST
+-   **Language:** TypeScript
+-   **Framework:** NestJS
+-   **Database:** MySQL
+-   **Protocol:** REST
 
 ---
 
@@ -115,8 +115,8 @@ Welcome to the **Inventory Service** of the GentleCorp Ecosystem. This microserv
 
 ```bash
 # Clone the repository
-git clone https://github.com/GentleCorp-AG/gentlecorp-inventory-service.git
-cd gentlecorp-inventory-service
+git clone https://github.com/GentleCorp-AG/omnixys-inventory-service.git
+cd omnixys-inventory-service
 
 # Install dependencies
 npm install
@@ -137,9 +137,9 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 For usage in commercial or proprietary systems, a commercial license is required. Learn more:
 
-- [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md)
-- [https://gentlecorp.com/license](https://gentlecorp.com/license)
-- 📧 license@gentlecorp.com
+-   [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md)
+-   [https://omnixys.com/license](https://omnixys.com/license)
+-   📧 license@omnixys.com
 
 ---
 
@@ -147,10 +147,8 @@ For usage in commercial or proprietary systems, a commercial license is required
 
 For questions or support:
 
-- 💼 [https://gentlecorp.com](https://gentlecorp.com)
-- 📧 hello@gentlecorp.com
-
-
+-   💼 [https://omnixys.com](https://omnixys.com)
+-   📧 hello@omnixys.com
 
 # 📦 Omnixys Inventory Service
 
@@ -162,13 +160,13 @@ Der **Omnixys Inventory Service** ist ein modularer Microservice zur Verwaltung 
 
 ## 🚀 Features
 
-* 📦 Verwaltung von Beständen pro Produkt und Variante
-* 📉 Echtzeitverfügbarkeiten durch GraphQL-Abfragen
-* 🔄 Events bei Bestandserhöhungen/-verringerungen via Kafka
-* 🧾 Tracing via OpenTelemetry (Tempo)
-* 📊 Monitoring via Prometheus (/metrics)
-* 🧠 Zugriffsschutz über Keycloak mit Rollenprüfung (`Admin`, `helper`)
-* �� Zentrales Logging via LoggerPlus + Kafka (`logs.inventory`)
+-   📦 Verwaltung von Beständen pro Produkt und Variante
+-   📉 Echtzeitverfügbarkeiten durch GraphQL-Abfragen
+-   🔄 Events bei Bestandserhöhungen/-verringerungen via Kafka
+-   🧾 Tracing via OpenTelemetry (Tempo)
+-   📊 Monitoring via Prometheus (/metrics)
+-   🧠 Zugriffsschutz über Keycloak mit Rollenprüfung (`Admin`, `helper`)
+-   �� Zentrales Logging via LoggerPlus + Kafka (`logs.inventory`)
 
 ---
 
@@ -229,10 +227,10 @@ Beispiel-Query:
 
 ```graphql
 query {
-  getInventoryByProductId(productId: "123") {
-    quantity
-    updatedAt
-  }
+    getInventoryByProductId(productId: "123") {
+        quantity
+        updatedAt
+    }
 }
 ```
 
@@ -240,10 +238,10 @@ query {
 
 ## �� Logging & Monitoring
 
-* Strukturierte Logs im JSON-Format (`LoggerPlus`)
-* Kafka-Integration via `LogEventDTO`
-* Tracing automatisch via Middleware (`TraceContext`)
-* Prometheus-Metrics unter `/metrics`
+-   Strukturierte Logs im JSON-Format (`LoggerPlus`)
+-   Kafka-Integration via `LogEventDTO`
+-   Tracing automatisch via Middleware (`TraceContext`)
+-   Prometheus-Metrics unter `/metrics`
 
 ---
 
@@ -286,4 +284,4 @@ Veröffentlicht unter der [GNU General Public License v3.0](./LICENSE)
 
 ---
 
-> *Connect Everything. Empower Everyone.*
+> _Connect Everything. Empower Everyone._

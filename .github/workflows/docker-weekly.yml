@@ -1,0 +1,40 @@
+name: Weekly Docker Push to GHCR
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Jeden Montag um 03:00 UTC
+  workflow_dispatch:  # Manuelles Triggern möglich
+
+jobs:
+  docker-push:
+    runs-on: ubuntu-latest
+    env:
+      CURRENT_DATE: ${{ vars.CURRENT_DATE }}
+      IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Latest Docker Image from Docker Hub
+        run: |
+          docker pull ${{ env.IMAGE_NAME }}:latest
+
+      - name: Tag Docker Image for GHCR
+        run: |
+          docker tag ${{ env.IMAGE_NAME }}:latest ghcr.io/${{ env.IMAGE_NAME }}:latest
+          docker tag ${{ env.IMAGE_NAME }}:latest ghcr.io/${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+
+      - name: Push Docker Image to GHCR
+        run: |
+          docker push ghcr.io/${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+          docker push ghcr.io/${{ env.IMAGE_NAME }}:latest
+
+          ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}

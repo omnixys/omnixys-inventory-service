@@ -15,8 +15,8 @@ dependencies = [
     "fastapi[standard]>=0.115.12",
     "hypercorn>=0.17.3",
     "openpyxl>=3.1.5",
-     # Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy
-     "orjson>=3.10.16",
+    # Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy
+    "orjson>=3.10.16",
     "pyfiglet>=1.0.2",
     "python-dotenv>=1.1.0",
     "strawberry-graphql[federation]>=0.262.5",
@@ -25,18 +25,18 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "httpx>=0.28.1",
     "greenlet>=3.0.3",
-    "aiomysql>=0.2.0",                    # Async MySQL-Treiber
+    "aiomysql>=0.2.0", # Async MySQL-Treiber
     "SQLAlchemy[asyncio]>=2.0.40",
     "pydantic-settings>=2.2.1",
     "aiokafka>=0.10.0",
-
-     # --- Observability ---
+    # --- Observability ---
     "loguru>=0.7.3",
     "opentelemetry-api>=1.14.0",
-    "opentelemetry-exporter-otlp",   # OTLP Export zu Tempo
+    "opentelemetry-exporter-otlp", # OTLP Export zu Tempo
     "opentelemetry-instrumentation-fastapi>=0.46b0", # automatisches Request-Tracing
     "opentelemetry-sdk>=1.14.0",
     "prometheus-fastapi-instrumentator", # automatisches Request-Tracing
+    "aiohttp>=3.12.4",
 ]
 
 [project.scripts]
@@ -47,7 +47,7 @@ requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [project.urls]
-homepage = "https://www.gentlecorp-systems.com"
+homepage = "https://www.omnixys-systems.com"
 documentation = "https://readthedocs.org"
 repository = "https://github.com"
 changelog = "https://github.comgentlecorp/inventory/blob/master/CHANGELOG.md"

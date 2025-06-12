@@ -1,0 +1,179 @@
+name: CI/CD Pipeline – Omnixys Inventory Service
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'  # Nur für Versionstags (z.B. v1.0.0)
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
+
+  ACTIVE_PROFILE: ${{ secrets.ACTIVE_PROFILE }}
+  HTTPS: ${{ secrets.HTTPS }}
+
+  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  KC_SERVICE_SECRET: ${{ secrets.KC_SERVICE_SECRET }}
+
+  KAFKA_HOST: ${{ secrets.KAFKA_HOST }}
+  TEMPO_HOST: ${{ secrets.TEMPO_HOST }}
+  KEYS_PATH: ${{ secrets.KEYS_PATH }}
+
+jobs:
+  build:
+    name: 🔨 Build & Test (Maven)
+    runs-on: ubuntu-latest
+    outputs:
+      CURRENT_DATE: ${{ steps.set_date.outputs.CURRENT_DATE }}
+    strategy:
+      matrix:
+        python-version: [3.13]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print ref name
+        run: echo "This workflow was triggered by ${{ github.ref_name }}"
+
+      - name: Print actor
+        run: echo "The actor is ${{ github.actor }}"
+
+      - name: Print tag
+        run: echo "The tag is ${{ github.ref_name }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Restore Dependencies (uv)
+        run: uv pip install --system --upgrade
+
+    #   - name: Run Tests
+    #     run: pytest --disable-warnings
+
+      - name: Set CURRENT_DATE
+        id: set_date
+        run: |
+            DATE=$(date +'%Y-%m-%d')
+            echo "CURRENT_DATE=$DATE" >> $GITHUB_OUTPUT
+
+      - name: Speichere CURRENT_DATE in Repository-Variable
+        if: ${{ vars.CURRENT_DATE != steps.set_date.outputs.CURRENT_DATE }}  # Bedingung hinzufügen
+        run: |
+          curl -X PATCH \
+          -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/actions/variables/CURRENT_DATE \
+          -d '{"value": "${{ steps.set_date.outputs.CURRENT_DATE }}"}'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-${{ matrix.python-version }}
+          path: .
+          retention-days: 1
+
+  analyze:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: [3.13]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv pip install --system
+
+      # - name: Run linter (Ruff)
+      #   run: ruff check .
+
+      # - name: Run safety audit
+      #   run: uv pip install safety && safety check --full-report
+
+      - name: Generate documentation (TypeDoc)
+        run: npm run typedoc
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          publish_dir: ./docs
+
+  package:
+    name: 📦 Package Application
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        python-version: [3.13]
+    if: github.actor == 'caleb-script' && github.event_name == 'push'
+    steps:
+
+      - name: Download dist folder
+        uses: actions/download-artifact@v4
+        with:
+          name: inventory-dist-${{ matrix.python-version }}
+          path: .
+
+      - name: Package distribution
+        run: zip -r inventory.zip ./
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-package-${{ matrix.python-version }}
+          path: inventory.zip
+
+  docker:
+    name: 🐳 Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [build, package]
+    env:
+      CURRENT_DATE: ${{ needs.build.outputs.CURRENT_DATE }}
+    if: github.actor == 'caleb-script' && github.event_name == 'push'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }} .
+
+
+      - name: Tag Docker Image
+        run: |
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }} ${{ env.IMAGE_NAME }}:latest
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }} ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}
+          docker push ${{ env.IMAGE_NAME }}:latest

@@ -1,7 +1,8 @@
 from typing import Final
+from loguru import logger
 import strawberry
 from inventory.dependency_provider import provide_inventory_query_resolver, provide_reserved_item_query_resolver
-from inventory.error.exceptions import AuthenticationError
+from inventory.error.authentication_error import AuthenticationError
 from inventory.model.entity.inventory import InventoryType
 from inventory.model.entity.reserved_item import ReserveInventoryItemType
 from inventory.model.input.pagination import PaginationInput

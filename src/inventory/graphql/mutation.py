@@ -1,10 +1,11 @@
 import strawberry
 from strawberry.types import Info
+from inventory.error.authentication_error import AuthenticationError
 from inventory.model.entity.inventory import InventoryInput, InventoryType
 from inventory.model.entity.reserved_item import ReserveInventoryItemInput
 from inventory.security.keycloak_service import KeycloakService
 from inventory.dependency_provider import provide_inventory_mutation_resolver
-from inventory.error.exceptions import AuthenticationError
+from loguru import logger
 
 # ---------------------------
 # GraphQL Mutation Definition

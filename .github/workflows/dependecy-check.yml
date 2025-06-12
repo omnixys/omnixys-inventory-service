@@ -1,0 +1,45 @@
+name: Dependency Check – Inventory
+
+on:
+  workflow_dispatch: # Manuelles Auslösen
+  schedule:
+    - cron: "0 12 * * 1" # Jeden Montag um 12:00 Uhr UTC
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.13]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv and tools
+        run: |
+          pip install uv
+          uv pip install --system
+          uv pip install --system safety pip-audit
+
+      - name: Run safety check
+        run: |
+          mkdir -p reports
+          safety check --full-report --output json > reports/safety-report.json
+          jq '.' reports/safety-report.json > reports/safety-report-pretty.json || true
+
+      - name: Run pip-audit
+        run: |
+          pip-audit -f json -o reports/pip-audit-report.json
+          jq '.' reports/pip-audit-report.json > reports/pip-audit-report-pretty.json || true
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dependency-reports
+          path: reports/

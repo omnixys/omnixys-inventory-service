@@ -2,7 +2,9 @@ import httpx
 from typing import Any, Dict
 from loguru import logger
 
-PRODUCT_GRAPHQL_URL = "http://localhost:7301/graphql"
+from inventory.config import env
+
+PRODUCT_GRAPHQL_URL = env.PRODUCT_GRAPHQL_URL
 class ProductGraphQLClient:
     """Client zur Kommunikation mit dem Product-Service via GraphQL."""
 

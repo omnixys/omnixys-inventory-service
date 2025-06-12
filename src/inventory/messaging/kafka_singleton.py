@@ -1,6 +1,7 @@
 # inventory/messaging/kafka_singleton.py
 
 from typing import Optional
+from inventory.config import env
 from inventory.messaging.handler.release_item_handler import ReleaseItemHandler
 from inventory.messaging.kafka_consumer_service import KafkaConsumerService
 from inventory.messaging.kafka_event_dispatcher import KafkaEventDispatcher
@@ -34,9 +35,8 @@ async def get_kafka_consumer() -> KafkaConsumerService:
         ReleaseItemHandler(),
     )
 
-
     return KafkaConsumerService(
         dispatcher=dispatcher,
         topics=[KafkaTopics.inventory_reserve, KafkaTopics.inventory_release],
-        bootstrap_servers="localhost:9092",
+        bootstrap_servers=env.KAFKA_URI,
     )

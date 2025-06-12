@@ -1,6 +1,7 @@
 """Exceptions in der Geschäftslogik."""
 
 from collections.abc import Mapping
+from typing import Optional
 
 from graphql import GraphQLError
 
@@ -11,12 +12,6 @@ __all__ = [
     "UsernameExistsError",
     "VersionOutdatedError",
 ]
-
-
-class AuthenticationError(GraphQLError):
-    def __init__(self, message="Authentication required!"):
-        super().__init__(message)
-
 
 class EmailExistsError(Exception):
     """Exception, falls die Emailadresse bereits existiert."""

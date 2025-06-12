@@ -7,6 +7,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 # 🔧 Prometheus Setup
+from inventory.config import env
 from inventory.config.kafka import get_kafka_settings
 
 from opentelemetry import trace
@@ -27,7 +28,7 @@ def setup_otel(app):
 
     try:
         otlp_exporter = OTLPSpanExporter(
-            endpoint="http://localhost:4318/v1/traces"
+            endpoint=env.TEMPO_URI
         )
     except Exception as e:
         logger.warning("Tempo Exporter konnte nicht gestartet werden: {}", str(e))

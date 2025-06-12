@@ -1,0 +1,12 @@
+# .github/labeler.yml
+
+dependencies:
+  - '**/build.gradle'
+  - '**/build.gradle.kts'
+
+github-actions:
+  - '.github/workflows/*.yml'
+
+ci:
+  - '.github/**'
+  - 'devtools/**'

@@ -7,6 +7,7 @@ from loguru import logger
 import asyncio, json
 
 from inventory.messaging.kafka_event_dispatcher import KafkaEventDispatcher
+from inventory.config import env, kafka
 
 class KafkaConsumerService:
     """Asynchrone Kafka-Consumer-Logik für Log-Einträge."""
@@ -15,7 +16,7 @@ class KafkaConsumerService:
         self,
         dispatcher: KafkaEventDispatcher,
         topics: list[str],
-        bootstrap_servers: str = "localhost:9092",
+        bootstrap_servers: str = env.KAFKA_URI,
     ):
         self.dispatcher = dispatcher
         self.topics = topics

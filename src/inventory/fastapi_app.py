@@ -26,6 +26,8 @@ from inventory.repository.session import dispose_connection_pool, get_session
 from inventory.router import shutdown_router
 from inventory.security.keycloak_service import KeycloakService
 
+from inventory.health.router import router as health_router
+
 from .banner import banner
 
 __all__ = [
@@ -89,6 +91,7 @@ Instrumentator().instrument(app).expose(app)
 # --------------------------------------------------------------------------------------
 # R E S T
 # --------------------------------------------------------------------------------------
+app.include_router(health_router)
 app.include_router(shutdown_router, prefix="/admin")
 if dev:
     app.include_router(db_populate_router, prefix="/dev")

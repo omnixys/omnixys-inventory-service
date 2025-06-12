@@ -130,7 +130,6 @@ jobs:
             pip install uv
             uv venv .venv
             source .venv/bin/activate
-            uv add mkdocs mkdocs-material
             mkdocs build
 
 

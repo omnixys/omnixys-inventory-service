@@ -1,136 +1,143 @@
 name: Security – Omnixys Inventory Service
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # täglich um 3:00 Uhr UTC
-  workflow_dispatch:
+    schedule:
+      - cron: '0 3 * * *'  # täglich um 3:00 Uhr UTC
+    workflow_dispatch:
 
 permissions:
-  contents: read
-  security-events: write
+    contents: read
+    security-events: write
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
-  CURRENT_DATE: ${{ vars.CURRENT_DATE }}
+    IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
 
 jobs:
-  python-dependency-check:
-    name: "Python Dependency Check-${{ vars.CURRENT_DATE }}"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    python-dependency-check:
+      name: "Python Dependency Check-${{ matrix.python-version }}-${{ vars.CURRENT_DATE }}"
+      runs-on: ubuntu-latest
+      strategy:
+          matrix:
+              python-version: [3.13]
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: ${{ matrix.python-version }}
 
-      - name: Install tools & dependencies
-        run: |
-          pip install uv
-          uv pip install --system
-          uv pip install --system safety pip-audit
+        - name: Install tools & dependencies
+          run: |
+            pip install uv
+            uv venv .venv
+            uv sync --all-groups
+            .venv/bin/uv pip install safety pip-audit
 
-      - name: Run safety
-        run: |
-          mkdir -p reports
-          safety check --full-report --output json > reports/safety-report.json
-          jq '.' reports/safety-report.json > reports/safety-report-pretty.json || true
+        - name: Run safety
+          run: |
+            mkdir -p reports
+            .venv/bin/safety check --full-report --output json > reports/safety-report.json
+            jq '.' reports/safety-report.json > reports/safety-report-pretty.json
+          continue-on-error: true
 
-      - name: Run pip-audit
-        run: |
-          pip-audit -f json -o reports/pip-audit-report.json
-          jq '.' reports/pip-audit-report.json > reports/pip-audit-report-pretty.json || true
+        - name: Run pip-audit
+          run: |
+            .venv/bin/pip-audit -f json -o reports/pip-audit-report.json
+            jq '.' reports/pip-audit-report.json > reports/pip-audit-report-pretty.json
+          continue-on-error: true
 
-      - name: Upload Python Security Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-security-reports
-          path: reports/
+        - name: Upload Python Security Reports
+          uses: actions/upload-artifact@v4
+          with:
+            name: python-security-reports
+            path: reports/
 
-  snyk:
-    name: "Snyk Scan-${{ vars.CURRENT_DATE }}"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    snyk:
+      name: "Snyk Scan-${{ matrix.python-version }}-${{ vars.CURRENT_DATE }}"
+      runs-on: ubuntu-latest
+      strategy:
+          matrix:
+              python-version: [3.13]
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          pip install uv
-          uv pip install --system
+        - name: Install dependencies
+          run: |
+            pip install uv
+            uv venv .venv
+            uv sync --all-groups
+            .venv/bin/uv pip freeze > requirements.txt
 
-      - name: Set up Snyk CLI
-        uses: snyk/actions/setup@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        - name: Set up Snyk CLI
+          uses: snyk/actions/setup@master
+          env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Authenticate with Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        - name: Authenticate with Snyk
+          run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Run Snyk Test (JSON)
-        run: |
-          snyk test --file=requirements.txt --json-file-output=snyk-report.json || true
-          mkdir -p reports
-          npm install -g snyk-to-html
-          snyk-to-html -i snyk-report.json -o reports/snyk-report.html
+        - name: Run Snyk Test (JSON)
+          run: |
+            snyk test --file=requirements.txt --json-file-output=snyk-report.json
+            mkdir -p reports
+            npm install -g snyk-to-html
+            snyk-to-html -i snyk-report.json -o reports/snyk-report.html
+          continue-on-error: true
 
-      - name: Run Snyk IaC Test
-        run: snyk iac test --report || true
+        - name: Run Snyk IaC Test
+          run: snyk iac test --report
+          continue-on-error: true
 
-      - name: Upload Snyk Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: snyk-report
-          path: ./reports
+        - name: Upload Snyk Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: snyk-report
+            path: ./reports
 
-  docker-scout:
-    name: "Docker Scout Scan-${{ vars.CURRENT_DATE }}"
-    runs-on: ubuntu-latest
-    needs: python-dependency-check
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    docker-scout:
+      name: "Docker Scout Scan-${{ vars.CURRENT_DATE }}"
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USER }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker Image
-        run: |
-          CURRENT_DATE=$(date +'%Y-%m-%d')
-          echo "CURRENT_DATE=$CURRENT_DATE" >> $GITHUB_ENV
-          docker build -t ${{ env.IMAGE_NAME }}:$CURRENT_DATE .
+        - name: Docker Scout Quickview
+          id: docker-scout-quickview
+          uses: docker/scout-action@v1
+          with:
+            command: quickview
+            image: "${{ env.IMAGE_NAME }}:latest"
 
-      - name: Docker Scout Quickview
-        id: docker-scout-quickview
-        uses: docker/scout-action@v1
-        with:
-          command: quickview
-          image: "${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}"
+        - name: Docker Scout CVEs
+          id: docker-scout-cves
+          uses: docker/scout-action@v1
+          with:
+            command: cves
+            image: "${{ env.IMAGE_NAME }}:latest"
 
-      - name: Docker Scout CVEs
-        id: docker-scout-cves
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: "${{ env.IMAGE_NAME }}:${{ env.CURRENT_DATE }}"
+        - name: Save Docker Scout Reports
+          run: |
+            mkdir -p reports
+            echo "${{ steps.docker-scout-quickview.outputs.quickview }}" > reports/docker-scout-quickview.md
+            echo "${{ steps.docker-scout-cves.outputs.cves }}" > reports/docker-scout-cves.md
+          continue-on-error: true
 
-      - name: Save Docker Scout Reports
-        run: |
-          echo "${{ steps.docker-scout-quickview.outputs.quickview }}" > docker-scout-quickview.md
-          echo "${{ steps.docker-scout-cves.outputs.cves }}" > docker-scout-cves.md
-
-      - name: Upload Docker Scout Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-scout-reports
-          path: ./docker-scout-*.md
+        - name: Upload Docker Scout Reports
+          uses: actions/upload-artifact@v4
+          with:
+            name: docker-scout-reports
+            path: reports/

@@ -126,13 +126,3 @@ jobs:
         run: |
             cosign sign --yes --recursive ${{ env.IMAGE_NAME_REPOSITORY }}:${{ env.CURRENT_DATE }}
             cosign sign --yes --recursive ${{ env.IMAGE_NAME_REPOSITORY }}:latest
-
-      - name: Install CycloneDX Maven Plugin
-        run: |
-          mvn org.cyclonedx:cyclonedx-maven-plugin:2.7.9:makeAggregateBom
-
-      - name: Upload SBOM (CycloneDX)
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-cyclonedx
-          path: target/bom.json

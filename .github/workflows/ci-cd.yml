@@ -16,7 +16,7 @@ permissions:
 
 env:
     COSIGN_EXPERIMENTAL: "true"
-    IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}
+    IMAGE_NAME: ${{ secrets.DOCKER_USER }}/${{ secrets.SERVICE }}-service
 
     ACTIVE_PROFILE: ${{ secrets.ACTIVE_PROFILE }}
     HTTPS: ${{ secrets.HTTPS }}

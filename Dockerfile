@@ -65,7 +65,7 @@ RUN set -eux; \
 USER app
 COPY --from=builder --chown=app:app /opt/app ./
 ENV PATH="/opt/app/.venv/bin:$PATH"
-ENV APP_NAME=product
+ENV APP_NAME=${APP_NAME}
 
 EXPOSE 8000
 STOPSIGNAL SIGINT
